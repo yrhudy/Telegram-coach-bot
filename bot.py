@@ -3,26 +3,37 @@ from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
 from openai import OpenAI
 
-# 🔑 Récupération des variables d’environnement (Render)
+print("Démarrage du bot...")
+
+# 🔑 Variables
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
-# 🤖 Initialisation OpenAI
+print("TOKEN TELEGRAM:", TELEGRAM_TOKEN)
+print("TOKEN OPENAI:", OPENAI_API_KEY)
+
+# Vérification
+if not TELEGRAM_TOKEN:
+    raise ValueError("❌ TELEGRAM_TOKEN manquant")
+
+if not OPENAI_API_KEY:
+    raise ValueError("❌ OPENAI_API_KEY manquant")
+
+# OpenAI
 client = OpenAI(api_key=OPENAI_API_KEY)
 
-# ▶️ Commande /start
+# Commande /start
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("Salut 👋 je suis ton bot IA. Pose-moi une question !")
+    await update.message.reply_text("Bot OK ✅")
 
-# 💬 Réponse automatique avec OpenAI
+# Message
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_message = update.message.text
-
     try:
+        user_message = update.message.text
+
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
-                {"role": "system", "content": "Tu es un assistant utile."},
                 {"role": "user", "content": user_message}
             ]
         )
@@ -31,9 +42,9 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(reply)
 
     except Exception as e:
-        await update.message.reply_text("Erreur ⚠️ : " + str(e))
+        await update.message.reply_text("Erreur: " + str(e))
 
-# 🚀 Lancement du bot
+# Lancement
 app = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
 
 app.add_handler(CommandHandler("start", start))
